@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router';
 
-import HomePage from './Pages/Home';
+
+import Header from './components/Header';
+import HomePage from './Pages/home';
+import AboutPage from './Pages/about';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,7 +26,7 @@ const App = () => {
         const data = await res.json();
         // console.log(data);
         setCoins(data);
-      } catch (er) {
+      } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
@@ -49,24 +52,28 @@ const App = () => {
   }, [limit]);
 
   return (
+    <>
+    <Header />
     <Routes>
       <Route
         path='/'
         element={
           <HomePage
-            coins={coins}
-            loading={loading}
-            error={error}
-            filter={filter}
-            setFilter={setFilter}
-            limit={limit}
-            setLimit={setLimit}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
+          coins={coins}
+          loading={loading}
+          error={error}
+          filter={filter}
+          setFilter={setFilter}
+          limit={limit}
+          setLimit={setLimit}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
           />
         }
-      />
+        />
+      <Route path='/about' element={<AboutPage />} />
     </Routes>
+        </>
   );
 };
 
