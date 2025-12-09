@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import CoinCard from './components/CoinCard';
 import LimitSelector from './components/LimitSelector';
 import FilterInput from './components/FilterInput';
+import SortSelector from './components/SortSelector';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,6 +13,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [limit, setLimit] = useState(10);
   const [filter, setFilter] = useState('');
+  const [sortBy, setSortBy] = useState('market_cap_desc');
 
   useEffect(() => {
     const fetchCoins = async () => {
@@ -21,7 +23,7 @@ const App = () => {
         );
         if (!res.ok) throw new Error('Failed to fetch Coin-Gecko Data');
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         setCoins(data);
       } catch (er) {
         setError(err.message);
@@ -48,9 +50,30 @@ const App = () => {
     //   });
   }, [limit]);
 
-  const filteredCoins = coins.filter((coin) => {
-    return coin.name.toLowerCase().includes(filter.toLowerCase()) || coin.symbol.toLowerCase().includes(filter.toLowerCase());
-  })
+  const filteredCoins = coins
+    .filter((coin) => {
+      return (
+        coin.name.toLowerCase().includes(filter.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(filter.toLowerCase())
+      );
+    })
+    .slice()
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'market_cap_desc':
+          return b.market_cap - a.market_cap;
+        case 'market_cap_asc':
+          return a.market_cap - b.market_cap;
+        case 'price_desc':
+          return b.current_price - a.current_price;
+        case 'price_asc':
+          return a.current_price - b.current_price;
+        case 'change_desc':
+          return b.price_change_percentage_24h - a.price_change_percentage_24h;
+        case 'change_asc':
+          return a.price_change_percentage_24h - b.price_change_percentage_24h;
+      }
+    });
 
   return (
     <div className=''>
@@ -61,13 +84,16 @@ const App = () => {
       <div className='top-controls'>
         <FilterInput onFilterChange={setFilter} filter={filter} />
         <LimitSelector onLimitChange={setLimit} limit={limit} />
+        <SortSelector onSortChange={setSortBy} sortBy={sortBy} />
       </div>
 
       {!loading && !error && (
         <main className='grid'>
-          {filteredCoins.length > 0 ? filteredCoins.map((coin) => (
-            <CoinCard coin={coin} key={coin.id} />
-          )) : <p>No matching coins found.</p>}
+          {filteredCoins.length > 0 ? (
+            filteredCoins.map((coin) => <CoinCard coin={coin} key={coin.id} />)
+          ) : (
+            <p>No matching coins found.</p>
+          )}
         </main>
       )}
     </div>
